@@ -7,7 +7,7 @@ function Colony(colonySize) {
   this.foods = [];
 
   // VARIABLES
-  var colonyMaxSize = 500; // This could be varied in the GUI but 300 seems to be an OK value
+  var colonyMaxSize = 100; // This could be varied in the GUI but 300 seems to be an OK value
 
   // Create initial population of food
   this.foods.push(new Food(p.target, p.targetR)); // Add new Food
