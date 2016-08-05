@@ -30,7 +30,7 @@ function Cell(pos, vel, dna) {
 
   // SIZE AND SHAPE
   // this.cellStartSize = map(this.dna.genes[8], 0, 1, 20, 50);
-  this.cellStartSize = map(this.dna.genes[8], 0, 1, 5, 8);
+  this.cellStartSize = map(this.dna.genes[8], 0, 1, 1, p.targetR);
   this.cellEndSize = this.cellStartSize * map(this.dna.genes[9], 0, 1, 0, 0.1);
   //this.r = this.cellStartSize; // Initial value for radius
   // this.flatness = map(this.dna.genes[11], 0, 1, 0.5, 2); // To make circles into ellipses. range 0.5 - 1.5
@@ -40,7 +40,6 @@ function Cell(pos, vel, dna) {
   this.drawStepN = 1;
 
   // MOVEMENT
-  this.living = true;
   this.position = pos.copy(); //cell has position
   //this.velocityLinear = vel.copy(); //cell has unique basic velocity component
   this.velocity = vel.copy(); //cell has unique basic velocity component
@@ -73,14 +72,12 @@ function Cell(pos, vel, dna) {
 
   this.run = function() {
     if (p.moveTarget) {this.updateMovingTarget();}
+    this.live();
     // this.updatePosition();
-    if (this.living) {
-      this.live();
-      this.updatePositionB();
-      this.updateSize();
-      this.updateFertility();
-      this.updateColor();
-    }
+    this.updatePositionB();
+    this.updateSize();
+    this.updateFertility();
+    this.updateColor();
     if (p.wraparound) {this.checkBoundaryWraparound();}
     this.display();
     if (p.debug) {this.cellDebugger(); }
@@ -90,7 +87,7 @@ function Cell(pos, vel, dna) {
     // this.movingTargetX = colony.foods[0].position.x;
     // this.movingTargetY = colony.foods[0].position.y;
     //this.movingTarget = createVector(this.movingTargetX, this.movingTargetY); // The target is always 'cell[0]'
-      this.movingTarget = p.target; // The target is always 'cell[0]'
+      this.movingTarget = p.target; // The target is always the current 'p.target'
   }
 
   this.live = function() {
@@ -125,7 +122,7 @@ function Cell(pos, vel, dna) {
   }
 
   this.updateSize = function() {
-    this.r = (((sin(map(this.maturity, 1, 0, 0, PI))))*this.cellStartSize)+2;
+    this.r = (((sin(map(this.maturity, 1, 0, 0, PI))))*this.cellStartSize)+1;
     // this.r = ((cos(map(this.maturity, 1, 0, PI, PI*3)))+1)*this.cellStartSize
     //this.r -= this.growth;
   }
@@ -315,13 +312,12 @@ function Cell(pos, vel, dna) {
     var distVect = p5.Vector.sub(p.target, this.position); // Static vector to get distance between the cell & target
     var distMag = distVect.mag(); // calculate magnitude of the vector separating the balls
     if (distMag < (this.r + p.targetR)) {
-      // this.living = false;
-      // this.fertile = true;
-      this.age = this.lifetime; // Trick to kill the cell off next time Death() is run
       p.target = createVector(this.position.x, this.position.y); // Cell position at moment of collision becomes the new target
       p.targetR = this.r; // Cell radius at moment of collision is used as the new target radius
       colony.foods.push(new Food(p.target, p.targetR)); // Add new Food / target
-
+      this.position = createVector(random(width), random(height)); // Randomise the cell's position
+      // this.age = this.lifetime; // Trick to kill the cell off next time Death() is run
+      this.age = 0; // Reset the cell's age
     }
   }
 
@@ -329,6 +325,15 @@ function Cell(pos, vel, dna) {
     var distVect = p5.Vector.sub(other.position, this.position); // Static vector to get distance between the cell & other
     var distMag = distVect.mag(); // calculate magnitude of the vector separating the balls
     if (distMag < (this.r + other.r)) {this.conception(other, distVect);} // Spawn a new cell
+  }
+
+  this.checkCollisionFood = function(food) { // Method receives a Cell object 'other' to get the required info about the collidee
+    var distVect = p5.Vector.sub(food.position, this.position); // Static vector to get distance between the cell & other
+    var distMag = distVect.mag(); // calculate magnitude of the vector separating the balls
+    if (distMag < (this.r + food.r)) {
+      this.position = createVector(random(width), random(height)); // Randomise the cell's position
+      //this.age = 0; // Reset the cell's age
+    }
   }
 
   this.conception = function(other, distVect) {

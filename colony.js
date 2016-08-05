@@ -46,12 +46,17 @@ function Colony(colonySize) {
       if (c.dead()) {this.cells.splice(i, 1); } // If the cell has died, remove it from the array
 
       // Iteration to check for a collision-conception event between current cell(i) (if it's fertile) and the rest of the colony
-      if (this.cells.length <= colonyMaxSize && c.fertile) { // Don't check for collisons if there are too many cells (wait until some die off)
-        for (var others = i - 1; others >= 0; others--) { // Since main iteration (i) goes backwards, this one needs to too
-          var other = this.cells[others]; // Get the other cells, one by one
-          if (other.fertile) {c.checkCollision(other);} // Only check for collisions when both cells are fertile
+      // if (this.cells.length <= colonyMaxSize && c.fertile) { // Don't check for collisons if there are too many cells (wait until some die off)
+      //   for (var others = i - 1; others >= 0; others--) { // Since main iteration (i) goes backwards, this one needs to too
+      //     var other = this.cells[others]; // Get the other cells, one by one
+      //     if (other.fertile) {c.checkCollision(other);} // Only check for collisions when both cells are fertile
+      //   }
+      // }
+
+      for (var foo = 0; foo < this.foods.length; foo++) { // Iterate through all the foods but the last one
+          var food = this.foods[foo]; // Get the foods, one by one
+          c.checkCollisionFood(food); //test for a collision
         }
-      }
     }
 
     // If there are too many cells, remove some by 'culling'
