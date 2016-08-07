@@ -22,6 +22,13 @@ function Cell(pos, vel, dna) {
   // BOOLEAN
   this.fertile = false; // A new cell always starts of infertile
 
+  // LIFECYCLE
+  // Stage 0 = Moving and fertile
+  // Stage 1 = Stationary and fertile (attractive)
+  // Stage 2 = Stationary and infertile (repellent)
+
+  this.stage = 0; // A new cell always starts of in stage 0
+
   // GROWTH & REPRODUCTION
   this.age = 0; // Age is 'number of frames since birth'. A new cell always starts with age = 0. From age comes maturity
   this.lifespan = map(this.dna.genes[10], 0, 1, 1000, 2000); // Lifespan can be lowered by DNA but not increased
@@ -30,7 +37,7 @@ function Cell(pos, vel, dna) {
 
   // SIZE AND SHAPE
   // this.cellStartSize = map(this.dna.genes[8], 0, 1, 20, 50);
-  this.cellStartSize = map(this.dna.genes[8], 0, 1, 1, p.targetR);
+  this.cellStartSize = map(this.dna.genes[8], 0, 1, p.targetR, p.targetR); // cellStartSize does not vary by DNA
   this.cellEndSize = this.cellStartSize * map(this.dna.genes[9], 0, 1, 0, 0.1);
   //this.r = this.cellStartSize; // Initial value for radius
   // this.flatness = map(this.dna.genes[11], 0, 1, 0.5, 2); // To make circles into ellipses. range 0.5 - 1.5
@@ -182,15 +189,15 @@ function Cell(pos, vel, dna) {
 
   this.applyBehaviors = function(cells, foods) {
     var separateForce = this.separate(cells);
-    var separateForceFoods = this.separateFoods(foods);
+    // var separateForceFoods = this.separateFoods(foods);
     if (!p.moveTarget) {var seekForce = this.seek(this.target);}  else {var seekForce = this.seek(this.movingTarget);}
 
     separateForce.mult(p.separateWeight);
-    separateForceFoods.mult(p.separateWeight);
+    // separateForceFoods.mult(p.separateWeight);
     seekForce.mult(p.seekWeight);
 
     this.applyForce(separateForce);
-    this.applyForce(separateForceFoods);
+    // this.applyForce(separateForceFoods);
     this.applyForce(seekForce);
   }
 
@@ -233,35 +240,35 @@ function Cell(pos, vel, dna) {
 
   // Separation of Cells and Foods
   // Method checks for nearby vehicles and steers away
-  this.separateFoods = function(foods) {
-    var sum = createVector();
-    var count = 0;
-    // For every food in the system apart from the last one to be added, check if it's too close
-    for (var i = 0; i < foods.length-1; i++) {
-      var d = p5.Vector.dist(this.position, foods[i].position);
-      desiredseparation = p.sepFood * 0.01 * p.targetR;
-      // If the distance is greater than 0 and less than an arbitrary amount (0 when you are yourself)
-      if ((d > 0) && (d < desiredseparation)) {
-        // Calculate vector pointing away from neighbor
-        var diff = p5.Vector.sub(this.position, foods[i].position);
-        diff.normalize();
-        diff.div(d);        // Weight by distance
-        sum.add(diff);
-        count++;            // Keep track of how many
-      }
-    }
-    // Average -- divide by how many
-    if (count > 0) {
-      sum.div(count);
-      // Our desired vector is the average scaled to maximum speed
-      sum.normalize();
-      sum.mult(p.maxspeed);
-      // Implement Reynolds: Steering = Desired - Velocity
-      sum.sub(this.velocity);
-      sum.limit(p.maxforce);
-    }
-    return sum;
-  }
+  // this.separateFoods = function(foods) {
+  //   var sum = createVector();
+  //   var count = 0;
+  //   // For every food in the system apart from the last one to be added, check if it's too close
+  //   for (var i = 0; i < foods.length-1; i++) {
+  //     var d = p5.Vector.dist(this.position, foods[i].position);
+  //     desiredseparation = p.sepFood * 0.01 * p.targetR;
+  //     // If the distance is greater than 0 and less than an arbitrary amount (0 when you are yourself)
+  //     if ((d > 0) && (d < desiredseparation)) {
+  //       // Calculate vector pointing away from neighbor
+  //       var diff = p5.Vector.sub(this.position, foods[i].position);
+  //       diff.normalize();
+  //       diff.div(d);        // Weight by distance
+  //       sum.add(diff);
+  //       count++;            // Keep track of how many
+  //     }
+  //   }
+  //   // Average -- divide by how many
+  //   if (count > 0) {
+  //     sum.div(count);
+  //     // Our desired vector is the average scaled to maximum speed
+  //     sum.normalize();
+  //     sum.mult(p.maxspeed);
+  //     // Implement Reynolds: Steering = Desired - Velocity
+  //     sum.sub(this.velocity);
+  //     sum.limit(p.maxforce);
+  //   }
+  //   return sum;
+  // }
 
 
   // Death
@@ -314,7 +321,7 @@ function Cell(pos, vel, dna) {
     if (distMag < (this.r + p.targetR)) {
       p.target = createVector(this.position.x, this.position.y); // Cell position at moment of collision becomes the new target
       p.targetR = this.r; // Cell radius at moment of collision is used as the new target radius
-      colony.foods.push(new Food(p.target, p.targetR)); // Add new Food / target
+      // colony.foods.push(new Food(p.target, p.targetR)); // Add new Food / target
       this.position = createVector(random(width), random(height)); // Randomise the cell's position
       // this.age = this.lifetime; // Trick to kill the cell off next time Death() is run
       this.age = 0; // Reset the cell's age

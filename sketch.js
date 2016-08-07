@@ -1,12 +1,13 @@
 /*
- * Aggregator
- * by Richard Brown
- *
-* TO-DO:
-* Cells should avoid all food but the most recently-added object DONE, but only partly successful
-* Maybe all other foods should kill cells?
+* Aggregator
+* by Richard Brown
 *
- */
+* Branch: Only_cells
+* My goal is to remove the 'food' objects so that all objects are Cells
+* The different 'behaviours' will instead be realised through cells having different states.
+* This could be a pre-cursor to 'lifecycle' phases, and will therefore be named 'stage'
+*
+*/
 
 var colony; // A colony object
 
@@ -160,6 +161,8 @@ var initGUI = function () {
   var controller = gui.add(p, 'sepII', 0, 500).name('<--> White-White').listen();
     controller.onChange(function(value) {populateColony(); });
   var controller = gui.add(p, 'sepFood', 0, 500).name('<--> Cell-Food').listen();
+    controller.onChange(function(value) {populateColony(); });
+  var controller = gui.add(p, 'targetR', 1, 100).name('Target Size').listen();
     controller.onChange(function(value) {populateColony(); });
 
   gui.add(p, 'trailMode', { None: 1, Blend: 2, Continuous: 3} ).name('Trail Mode [1-2-3]');

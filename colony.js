@@ -4,22 +4,23 @@
 function Colony(colonySize) {
   // Start with an array for all cells
   this.cells = [];
-  this.foods = [];
+  //this.foods = [];
 
   // VARIABLES
   var colonyMaxSize = 100; // This could be varied in the GUI but 300 seems to be an OK value
 
   // Create initial population of food
-  this.foods.push(new Food(p.target, p.targetR)); // Add new Food
+  //this.foods.push(new Food(p.target, p.targetR)); // Add new Food
 
   // Create initial population of cells
   //var strainSize = floor(p.colonySize/p.numStrains);
   for (var i = 0; i < p.numStrains; i++) {
     var dna = new DNA(); // Get new DNA
-    if (p.centerSpawn) {var pos = createVector(width/2, height/2);} else {var pos = createVector(random(width), random(height));}
+    // if (p.centerSpawn) {var pos = createVector(width/2, height/2);} else {var pos = createVector(random(width), random(height));}
     for (var j = 0; j < p.strainSize; j++) {
       //if (p.centerSpawn) {var pos = createVector(width/2, height/2);} else {var pos = createVector(random(width), random(height));}
       var vel = p5.Vector.random2D(); // Initial velocity vector is random
+      var pos = createVector(random(width), random(height))
       this.cells.push(new Cell(pos, vel, dna)); // Add new Cell with DNA
     }
   }
@@ -33,17 +34,17 @@ function Colony(colonySize) {
   this.run = function() {
     if (p.debug) {this.colonyDebugger(); }
     // Display all the food
-    for (var h=0; h < this.foods.length; h++) {
-      var f = this.foods[h];
-      f.display();
-    }
-    // Iterate backwards through the ArrayList because we are removing items
-    for (var i = this.cells.length - 1; i >= 0; i--) {
+    // for (var h=0; h < this.foods.length; h++) {
+    //   var f = this.foods[h];
+    //   f.display();
+    // }
+    // Iterate through the all the cells in the ArrayList (backwards, because we are removing items)
+    for (var i = this.cells.length - 1; i >= 0; i--) { // Minus 1 because we count from 0 - X while size is (X+1)
       var c = this.cells[i];                    // Get one cell at a time
       c.run();                                  // Run the cell (grow, move, spawn, check position vs boundaries etc.)
-      c.applyBehaviors(this.cells, this.foods);
+      c.applyBehaviors(this.cells); // Apply behaviours to determine velocity for next iteration. Could use IF to only apply for stage 0?
       c.checkCollisionTarget();
-      if (c.dead()) {this.cells.splice(i, 1); } // If the cell has died, remove it from the array
+      //if (c.dead()) {this.cells.splice(i, 1); } // If the cell has died, remove it from the array. Comment out to prevent death
 
       // Iteration to check for a collision-conception event between current cell(i) (if it's fertile) and the rest of the colony
       // if (this.cells.length <= colonyMaxSize && c.fertile) { // Don't check for collisons if there are too many cells (wait until some die off)
@@ -53,10 +54,10 @@ function Colony(colonySize) {
       //   }
       // }
 
-      for (var foo = 0; foo < this.foods.length-1; foo++) { // Iterate through all the foods but the last one
-          var food = this.foods[foo]; // Get the foods, one by one
-          c.checkCollisionFood(food, foo); //test for a collision
-        }
+      // for (var foo = 0; foo < this.foods.length-1; foo++) { // Iterate through all the foods but the last one
+      //     var food = this.foods[foo]; // Get the foods, one by one
+      //     c.checkCollisionFood(food, foo); //test for a collision
+      //   }
     }
 
     // If there are too many cells, remove some by 'culling'
