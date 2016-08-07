@@ -6,7 +6,7 @@ function Food(pos, r_) {
 
   this.display = function() {
     stroke(40);
-    fill(0);
+    fill(255);
     ellipse(this.position.x, this.position.y, this.r, this.r);
   }
 

@@ -122,7 +122,7 @@ function Cell(pos, vel, dna) {
   }
 
   this.updateSize = function() {
-    this.r = (((sin(map(this.maturity, 1, 0, 0, PI))))*this.cellStartSize)+1;
+    this.r = (((sin(map(this.maturity, 1, 0, 0, PI))))*this.cellStartSize)+2;
     // this.r = ((cos(map(this.maturity, 1, 0, PI, PI*3)))+1)*this.cellStartSize
     //this.r -= this.growth;
   }
@@ -327,12 +327,13 @@ function Cell(pos, vel, dna) {
     if (distMag < (this.r + other.r)) {this.conception(other, distVect);} // Spawn a new cell
   }
 
-  this.checkCollisionFood = function(food) { // Method receives a Cell object 'other' to get the required info about the collidee
+  this.checkCollisionFood = function(food, foo) { // Method receives a Cell object 'other' to get the required info about the collidee
     var distVect = p5.Vector.sub(food.position, this.position); // Static vector to get distance between the cell & other
     var distMag = distVect.mag(); // calculate magnitude of the vector separating the balls
     if (distMag < (this.r + food.r)) {
       this.position = createVector(random(width), random(height)); // Randomise the cell's position
       //this.age = 0; // Reset the cell's age
+      colony.foods.splice(foo, 1);
     }
   }
 

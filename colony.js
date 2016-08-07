@@ -53,9 +53,9 @@ function Colony(colonySize) {
       //   }
       // }
 
-      for (var foo = 0; foo < this.foods.length; foo++) { // Iterate through all the foods but the last one
+      for (var foo = 0; foo < this.foods.length-1; foo++) { // Iterate through all the foods but the last one
           var food = this.foods[foo]; // Get the foods, one by one
-          c.checkCollisionFood(food); //test for a collision
+          c.checkCollisionFood(food, foo); //test for a collision
         }
     }
 

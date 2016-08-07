@@ -208,7 +208,7 @@ var Parameters = function () { //These are the initial values, not the randomise
 
   this.moveTarget = true; // Toggle between 'center' and cell[0].position
   this.target = createVector(random(width-270), random(height)); // Initial target has random position
-  this.targetR = random(5, 30);
+  this.targetR = random(10, 30);
   this.maxspeed = 3.0;
   this.maxforce = 0.3;
   this.seekWeight = 0.5; // Multiplier for 'seek target' behaviour
