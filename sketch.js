@@ -22,7 +22,7 @@ function setup() {
   gui = new dat.GUI();
   initGUI();
   background(p.bkgColor);
-  // if (p.debug) {frameRate(10);}
+  if (p.debug) {frameRate(5);}
   colony = new Colony(p.colonySize);
 }
 
