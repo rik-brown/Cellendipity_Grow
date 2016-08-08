@@ -24,6 +24,10 @@ function Colony(colonySize) {
       this.cells.push(new Cell(pos, vel, dna)); // Add new Cell with DNA
     }
   }
+  this.cells[0].moving = false; // Target starts
+  this.cells[0].position = p.target; // Target gets location of p.target
+  this.cells[0].r = p.targetR;
+
 
   this.spawn = function(mousePos, vel, dna_) {
     // Spawn a new cell (called by e.g. MousePressed in main, accepting mouse coords for start position)
@@ -32,6 +36,8 @@ function Colony(colonySize) {
 
   // Run the colony
   this.run = function() {
+    fill(0);
+    ellipse(p.target.x, p.target.y, 5, 5);
     if (p.debug) {this.colonyDebugger(); }
     // Display all the food
     // for (var h=0; h < this.foods.length; h++) {
@@ -42,17 +48,17 @@ function Colony(colonySize) {
     for (var i = this.cells.length - 1; i >= 0; i--) { // Minus 1 because we count from 0 - X while size is (X+1)
       var c = this.cells[i];                    // Get one cell at a time
       c.run();                                  // Run the cell (grow, move, spawn, check position vs boundaries etc.)
-      c.applyBehaviors(this.cells); // Apply behaviours to determine velocity for next iteration. Could use IF to only apply for stage 0?
-      c.checkCollisionTarget();
+      if (c.moving) {c.applyBehaviors(this.cells)}; // Apply behaviours to determine velocity for next iteration. Could use IF to only apply for stage 0?
+      // c.checkCollisionTarget();
       //if (c.dead()) {this.cells.splice(i, 1); } // If the cell has died, remove it from the array. Comment out to prevent death
 
       // Iteration to check for a collision-conception event between current cell(i) (if it's fertile) and the rest of the colony
-      // if (this.cells.length <= colonyMaxSize && c.fertile) { // Don't check for collisons if there are too many cells (wait until some die off)
-      //   for (var others = i - 1; others >= 0; others--) { // Since main iteration (i) goes backwards, this one needs to too
-      //     var other = this.cells[others]; // Get the other cells, one by one
-      //     if (other.fertile) {c.checkCollision(other);} // Only check for collisions when both cells are fertile
-      //   }
-      // }
+      if (c.moving) { // Only check collisions on moving cells
+        for (var others = i - 1; others >= 0; others--) { // Since main iteration (i) goes backwards, this one needs to too
+          var other = this.cells[others]; // Get the other cells, one by one
+          if (!other.moving) {c.checkCollision(other);} // Only check for collisions against stationary cells
+        }
+      }
 
       // for (var foo = 0; foo < this.foods.length-1; foo++) { // Iterate through all the foods but the last one
       //     var food = this.foods[foo]; // Get the foods, one by one

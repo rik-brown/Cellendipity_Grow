@@ -7,6 +7,7 @@
 * The different 'behaviours' will instead be realised through cells having different states.
 * This could be a pre-cursor to 'lifecycle' phases, and will therefore be named 'stage'
 *
+* Working quite nicely, but some cells do not give correct function when colliding with target and they obstruct other cells.
 */
 
 var colony; // A colony object
@@ -15,6 +16,7 @@ function setup() {
   colorMode(HSB, 360, 255, 255, 255);
   createCanvas(windowWidth, windowHeight);
   //createCanvas(1024, 1024);
+  //frameRate(10);
   ellipseMode(RADIUS);
   p = new Parameters();
   gui = new dat.GUI();
@@ -53,7 +55,6 @@ function mousePressed() {
   // if (mousePos.x < (width-270)) {colony.spawn(mousePos, vel, dna);}
   if (mousePos.x < (width-270)) {
     p.target = createVector(mouseX, mouseY);
-    colony.foods.push(new Food(p.target, p.targetR)); // Add new Food
   }
 }
 
@@ -160,7 +161,7 @@ var initGUI = function () {
     controller.onChange(function(value) {populateColony(); });
   var controller = gui.add(p, 'sepII', 0, 500).name('<--> White-White').listen();
     controller.onChange(function(value) {populateColony(); });
-  var controller = gui.add(p, 'sepFood', 0, 500).name('<--> Cell-Food').listen();
+  var controller = gui.add(p, 'sepMoving', 0, 500).name('<--> Moving').listen();
     controller.onChange(function(value) {populateColony(); });
   var controller = gui.add(p, 'targetR', 1, 100).name('Target Size').listen();
     controller.onChange(function(value) {populateColony(); });
@@ -175,31 +176,31 @@ var initGUI = function () {
 
 var Parameters = function () { //These are the initial values, not the randomised ones
   this.colonySize = int(random (20,80)); // Max number of cells in the colony
-  this.strainSize = int(random(25,50)); // Number of cells in a strain
-  this.numStrains = int(random(1,10)); // Number of strains (a group of cells sharing the same DNA)
+  this.strainSize = int(random(3,10)); // Number of cells in a strain
+  this.numStrains = int(random(2,1)); // Number of strains (a group of cells sharing the same DNA)
 
   this.centerSpawn = false; // true=initial spawn is width/2, height/2 false=random
   this.autoRestart = false; // If true, will not wait for keypress before starting anew
 
-  this.bkgColHSV = { h: random(360), s: random(255), v: random(255) };
+  this.bkgColHSV = { h: random(360), s: random(0), v: random(255) };
   this.bkgColor = color(this.bkgColHSV.h, this.bkgColHSV.s*255, this.bkgColHSV.v*255); // Background colour
 
   this.fill_HTwist = 0;
   this.fill_STwist = 0;
-  this.fill_BTwist = 128;
+  this.fill_BTwist = 0;
   this.fill_ATwist = 0;
   this.stroke_HTwist = 0;
-  this.stroke_STwist = 255;
-  this.stroke_BTwist = 128;
-  this.stroke_ATwist = 255;
+  this.stroke_STwist = 0;
+  this.stroke_BTwist = 0;
+  this.stroke_ATwist = 0;
 
   this.fillDisable = false;
   this.strokeDisable = true;
 
-  this.nucleus = true;
+  this.nucleus = false;
 
   this.stepSize = 0;
-  this.stepSizeN = 00;
+  this.stepSizeN = 0;
   this.stepped = false;
 
   this.wraparound = true;
@@ -210,7 +211,8 @@ var Parameters = function () { //These are the initial values, not the randomise
   this.debug = false;
 
   this.moveTarget = true; // Toggle between 'center' and cell[0].position
-  this.target = createVector(random(width-270), random(height)); // Initial target has random position
+  // this.target = createVector(random(width-270), random(height)); // Initial target has random position
+  this.target = createVector(width/2, height/2); // Initial target is centered
   this.targetR = random(10, 30);
   this.maxspeed = 3.0;
   this.maxforce = 0.3;
@@ -218,8 +220,8 @@ var Parameters = function () { //These are the initial values, not the randomise
   this.separateWeight = 2; // Multiplier for 'separate' behaviour
   this.sepFF = 0; // Separation for Fertile && Fertile
   this.sepFI = 100; // Separation for Fertile && Infertile
-  this.sepII = 200; // Separation for Infertile && Infertile
-  this.sepFood = 300; // Separation for Cells and Food
+  this.sepII = 50; // Separation for Infertile && Infertile
+  this.sepMoving = 100; // Separation for Cells and Food
 
 }
 
