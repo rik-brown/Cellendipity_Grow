@@ -47,7 +47,7 @@ function Colony(colonySize) {
     // Iterate through the all the cells in the ArrayList (backwards, because we are removing items)
     for (var i = this.cells.length - 1; i >= 0; i--) { // Minus 1 because we count from 0 - X while size is (X+1)
       var c = this.cells[i];                    // Get one cell at a time
-      c.run();                                  // Run the cell (grow, move, spawn, check position vs boundaries etc.)
+      c.run(i);                                  // Run the cell (grow, move, spawn, check position vs boundaries etc.)
       if (c.moving) {c.applyBehaviors(this.cells)}; // Apply behaviours to determine velocity for next iteration. Could use IF to only apply for stage 0?
       // c.checkCollisionTarget();
       //if (c.dead()) {this.cells.splice(i, 1); } // If the cell has died, remove it from the array. Comment out to prevent death

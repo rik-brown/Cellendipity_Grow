@@ -22,7 +22,7 @@ function setup() {
   gui = new dat.GUI();
   initGUI();
   background(p.bkgColor);
-  if (p.debug) {frameRate(10);}
+  // if (p.debug) {frameRate(10);}
   colony = new Colony(p.colonySize);
 }
 
@@ -182,7 +182,7 @@ var Parameters = function () { //These are the initial values, not the randomise
   this.centerSpawn = false; // true=initial spawn is width/2, height/2 false=random
   this.autoRestart = false; // If true, will not wait for keypress before starting anew
 
-  this.bkgColHSV = { h: random(360), s: random(0), v: random(255) };
+  this.bkgColHSV = { h: random(360), s: random(0), v: random(255,255) };
   this.bkgColor = color(this.bkgColHSV.h, this.bkgColHSV.s*255, this.bkgColHSV.v*255); // Background colour
 
   this.fill_HTwist = 0;
@@ -194,8 +194,8 @@ var Parameters = function () { //These are the initial values, not the randomise
   this.stroke_BTwist = 0;
   this.stroke_ATwist = 0;
 
-  this.fillDisable = false;
-  this.strokeDisable = true;
+  this.fillDisable = true;
+  this.strokeDisable = false;
 
   this.nucleus = false;
 
@@ -208,12 +208,12 @@ var Parameters = function () { //These are the initial values, not the randomise
 
   this.restart = function () {colony.cells = []; populateColony();};
   this.randomRestart = function () {randomizer(); colony.cells = []; populateColony();};
-  this.debug = false;
+  this.debug = true;
 
   this.moveTarget = true; // Toggle between 'center' and cell[0].position
   // this.target = createVector(random(width-270), random(height)); // Initial target has random position
   this.target = createVector(width/2, height/2); // Initial target is centered
-  this.targetR = random(10, 30);
+  this.targetR = random(30, 30);
   this.maxspeed = 3.0;
   this.maxforce = 0.3;
   this.seekWeight = 0.5; // Multiplier for 'seek target' behaviour

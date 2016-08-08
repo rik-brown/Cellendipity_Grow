@@ -78,7 +78,7 @@ function Cell(pos, vel, dna) {
   this.strokeColor = color(this.stroke_H, this.stroke_S, this.stroke_B); // Initial color is set
   this.strokeAlpha = map(this.dna.genes[7], 0, 1, 0, 64);
 
-  this.run = function() {
+  this.run = function(i) {
     if (p.moveTarget) {this.updateMovingTarget();}
     this.live();
     // this.updatePosition();
@@ -90,7 +90,7 @@ function Cell(pos, vel, dna) {
     }
     if (p.wraparound) {this.checkBoundaryWraparound();}
     this.display();
-    if (p.debug) {this.cellDebugger(); }
+    if (p.debug) {this.cellDebugger(i); }
   }
 
   this.updateMovingTarget = function() {
@@ -284,8 +284,9 @@ function Cell(pos, vel, dna) {
   };
 
   this.display = function() {
-    //strokeWeight(2);
-    if (p.strokeDisable) {noStroke();} else {stroke(hue(this.strokeColor), saturation(this.strokeColor), brightness(this.strokeColor), this.strokeAlpha);}
+    strokeWeight(2);
+    // if (p.strokeDisable) {noStroke();} else {stroke(hue(this.strokeColor), saturation(this.strokeColor), brightness(this.strokeColor), this.strokeAlpha);}
+    if (p.strokeDisable) {noStroke();} else {stroke(0);}
     if (p.fillDisable) {noFill();} else {fill(hue(this.fillColor), saturation(this.fillColor), brightness(this.fillColor), this.fillAlpha);}
     //if (!this.moving) {fill(128);}
     var angle = this.velocity.heading();
@@ -335,18 +336,16 @@ function Cell(pos, vel, dna) {
   this.checkCollision = function(other) { // Method receives a Cell object 'other' to get the required info about the collidee
     var distVect = p5.Vector.sub(other.position, this.position); // Static vector to get distance between the cell & other
     var distMag = distVect.mag(); // calculate magnitude of the vector separating the balls
+    // strokeWeight(1);
+    // stroke(128, 128);
+    // line(this.position.x, this.position.y, other.position.x, other.position.y);
+    strokeWeight(3);
+    line(this.position.x, this.position.y, p.target.x, p.target.y);
+    strokeWeight(1);
     if (distMag < (this.r + other.r)) {this.conception(other, distVect);} // Spawn a new cell
   }
 
-  // this.checkCollisionFood = function(food, foo) { // Method receives a Cell object 'other' to get the required info about the collidee
-  //   var distVect = p5.Vector.sub(food.position, this.position); // Static vector to get distance between the cell & other
-  //   var distMag = distVect.mag(); // calculate magnitude of the vector separating the balls
-  //   if (distMag < (this.r + food.r)) {
-  //     this.position = createVector(random(width), random(height)); // Randomise the cell's position
-  //     //this.age = 0; // Reset the cell's age
-  //     colony.foods.splice(foo, 1);
-  //   }
-  // }
+
 
   this.conception = function(other, distVect) {
 
@@ -405,10 +404,13 @@ function Cell(pos, vel, dna) {
 
   }
 
-  this.cellDebugger = function() { // Displays cell parameters as text (for debug only)
+  this.cellDebugger = function(i) { // Displays cell parameters as text (for debug only)
+    strokeWeight(1);
     var rowHeight = 10;
     fill(0);
     textSize(rowHeight);
+
+    text(i, this.position.x, this.position.y + rowHeight*0);
     // RADIUS
     // text("r:" + this.r, this.position.x, this.position.y + rowHeight*1);
     // text("cellStartSize:" + this.cellStartSize, this.position.x, this.position.y + rowHeight*0);
@@ -431,10 +433,10 @@ function Cell(pos, vel, dna) {
     // text("lifespan:" + this.lifespan, this.position.x, this.position.y + rowHeight*3);
     //text("age:" + this.age, this.position.x, this.position.y + rowHeight*3);
     // text("fertility:" + this.fertility, this.position.x, this.position.y + rowHeight*4);
-    text("f:" + this.fertile, this.position.x, this.position.y + rowHeight*0);
-    // text("m:" + this.moving, this.position.x, this.position.y + rowHeight*1);
+    text("f:" + this.fertile, this.position.x, this.position.y + rowHeight*1);
+    text("m:" + this.moving, this.position.x, this.position.y + rowHeight*2);
 
-    //text("spawnCount:" + this.spawnCount, this.position.x, this.position.y + rowHeight*4);
+    text("spwnCt:" + this.spawnCount, this.position.x, this.position.y + rowHeight*3);
 
     // MOVEMENT
     //text("vel.x:" + this.velocity.x, this.position.x, this.position.y + rowHeight*4);
