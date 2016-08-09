@@ -341,10 +341,12 @@ function Cell(pos, vel, dna) {
     // strokeWeight(1);
     // stroke(128, 128);
     // line(this.position.x, this.position.y, other.position.x, other.position.y);
-    strokeWeight(1);
-    line(this.position.x, this.position.y, p.target.x, p.target.y);
-    strokeWeight(1);
-    text(int(distMag) + "   " + int(this.r) + "   " + int(other.r) + "   " + int(this.r+other.r), this.position.x, this.position.y+10);
+    strokeWeight(1); // debug
+    line(this.position.x, this.position.y, p.target.x, p.target.y); // debug
+    noFill(); // debug
+    ellipse(this.position.x, this.position.y, distMag, distMag); // debug
+    strokeWeight(1); // debug
+    // text(int(distMag) + "   " + int(this.r) + "   " + int(other.r) + "   " + int(this.r+other.r), this.position.x, this.position.y+10); // debug
     if (distMag < (this.r + other.r)) {this.conception(other);} // Spawn a new cell
   }
 
@@ -437,10 +439,10 @@ function Cell(pos, vel, dna) {
     // text("lifespan:" + this.lifespan, this.position.x, this.position.y + rowHeight*3);
     //text("age:" + this.age, this.position.x, this.position.y + rowHeight*3);
     // text("fertility:" + this.fertility, this.position.x, this.position.y + rowHeight*4);
-    text("f:" + this.fertile, this.position.x, this.position.y + rowHeight*2);
-    text("m:" + this.moving, this.position.x, this.position.y + rowHeight*3);
+    // text("f:" + this.fertile, this.position.x, this.position.y + rowHeight*2);
+    // text("m:" + this.moving, this.position.x, this.position.y + rowHeight*3);
 
-    text("spwnCt:" + this.spawnCount, this.position.x, this.position.y + rowHeight*4);
+    // text("spwnCt:" + this.spawnCount, this.position.x, this.position.y + rowHeight*4);
 
     // MOVEMENT
     //text("vel.x:" + this.velocity.x, this.position.x, this.position.y + rowHeight*4);
