@@ -38,9 +38,10 @@ function Cell(pos, vel, dna) {
 
   // SIZE AND SHAPE
   // this.cellStartSize = map(this.dna.genes[8], 0, 1, 20, 50);
+  this.cellStartSize = 10; // debug
   this.cellStartSize = map(this.dna.genes[8], 0, 1, p.targetR, p.targetR); // cellStartSize does not vary by DNA
   this.cellEndSize = this.cellStartSize * map(this.dna.genes[9], 0, 1, 0.05, 0.1);
-  //this.r = this.cellStartSize; // Initial value for radius
+  this.r = this.cellStartSize; // Initial value for radius
   // this.flatness = map(this.dna.genes[11], 0, 1, 0.5, 2); // To make circles into ellipses. range 0.5 - 1.5
   this.flatness = 1;
   this.growth = (this.cellStartSize-this.cellEndSize)/this.lifespan; // Should work for both large>small and small>large
@@ -132,10 +133,10 @@ function Cell(pos, vel, dna) {
   }
 
   this.updateSize = function() {
-    this.r = (((sin(map(this.maturity, 1, 0, 0, PI))))*this.cellStartSize)+2;
+    // this.r = (((sin(map(this.maturity, 1, 0, 0, PI))))*this.cellStartSize)+2;
     // this.r = ((cos(map(this.maturity, 1, 0, PI, PI*3)))+1)*this.cellStartSize
     //this.r -= this.growth;
-    // this.r = this.cellStartSize;
+    this.r = this.cellStartSize;
   }
 
   this.updateFertility = function() {
@@ -284,9 +285,9 @@ function Cell(pos, vel, dna) {
   };
 
   this.display = function() {
-    strokeWeight(2);
+    strokeWeight(1);
     // if (p.strokeDisable) {noStroke();} else {stroke(hue(this.strokeColor), saturation(this.strokeColor), brightness(this.strokeColor), this.strokeAlpha);}
-    if (p.strokeDisable) {noStroke();} else {stroke(0);}
+    if (p.strokeDisable) {noStroke();} else {stroke(100);}
     if (p.fillDisable) {noFill();} else {fill(hue(this.fillColor), saturation(this.fillColor), brightness(this.fillColor), this.fillAlpha);}
     //if (!this.moving) {fill(128);}
     var angle = this.velocity.heading();
@@ -334,21 +335,22 @@ function Cell(pos, vel, dna) {
   // }
 
   this.checkCollision = function(other) { // Method receives a Cell object 'other' to get the required info about the collidee
-    var distVect = p5.Vector.sub(other.position, this.position); // Static vector to get distance between the cell & other
-    var distMag = distVect.mag(); // calculate magnitude of the vector separating the balls
+    // var distVect = p5.Vector.sub(other.position, this.position); // Static vector to get distance between the cell & other
+    var distMag = p5.Vector.dist(this.position, other.position);
+    // var distMag = distVect.mag(); // calculate magnitude of the vector separating the balls
     // strokeWeight(1);
     // stroke(128, 128);
     // line(this.position.x, this.position.y, other.position.x, other.position.y);
-    strokeWeight(3);
+    strokeWeight(1);
     line(this.position.x, this.position.y, p.target.x, p.target.y);
     strokeWeight(1);
-    text(int(distMag) + "   " + int(this.r+other.r), this.position.x, this.position.y+10);
-    if (distMag < (this.r + other.r)) {this.conception(other, distVect);} // Spawn a new cell
+    text(int(distMag) + "   " + int(this.r) + "   " + int(other.r) + "   " + int(this.r+other.r), this.position.x, this.position.y+10);
+    if (distMag < (this.r + other.r)) {this.conception(other);} // Spawn a new cell
   }
 
 
 
-  this.conception = function(other, distVect) {
+  this.conception = function(other) {
 
     // Decrease spawn counters.
     // this.spawnCount--;
@@ -406,7 +408,7 @@ function Cell(pos, vel, dna) {
   }
 
   this.cellDebugger = function(i) { // Displays cell parameters as text (for debug only)
-    strokeWeight(1);
+    strokeWeight(0.5);
     var rowHeight = 10;
     fill(0);
     textSize(rowHeight);

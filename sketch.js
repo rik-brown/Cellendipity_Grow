@@ -8,6 +8,9 @@
 * This could be a pre-cursor to 'lifecycle' phases, and will therefore be named 'stage'
 *
 * Working quite nicely, but some cells do not give correct function when colliding with target and they obstruct other cells.
+*
+* Could it be an idea to use splice() to (re)organize the array to work more efficiently? Or perhaps even use two arrays for moving & stationary cells?
+* https://p5js.org/reference/#p5/splice
 */
 
 var colony; // A colony object
@@ -22,7 +25,7 @@ function setup() {
   gui = new dat.GUI();
   initGUI();
   background(p.bkgColor);
-  if (p.debug) {frameRate(5);}
+  if (p.debug) {frameRate(15);}
   colony = new Colony(p.colonySize);
 }
 
@@ -213,7 +216,7 @@ var Parameters = function () { //These are the initial values, not the randomise
   this.moveTarget = true; // Toggle between 'center' and cell[0].position
   // this.target = createVector(random(width-270), random(height)); // Initial target has random position
   this.target = createVector(width/2, height/2); // Initial target is centered
-  this.targetR = random(30, 30);
+  this.targetR = random(10, 10);
   this.maxspeed = 3.0;
   this.maxforce = 0.3;
   this.seekWeight = 0.5; // Multiplier for 'seek target' behaviour
