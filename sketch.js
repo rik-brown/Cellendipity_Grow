@@ -1,12 +1,15 @@
 /*
- * Aggregator
- * by Richard Brown
- *
-* TO-DO:
-* Cells should avoid all food but the most recently-added object DONE, but only partly successful
-* Maybe all other foods should kill cells?
+* Aggregator
+* by Richard Brown
 *
- */
+* Branch: Only_cells
+* My goal is to remove the 'food' objects so that all objects are Cells DONE!
+*
+* Could it be an idea to use splice() to (re)organize the array to work more efficiently? Or perhaps even use two arrays for moving & stationary cells?
+* https://p5js.org/reference/#p5/splice
+*
+* Could perhaps use something more on the visual side - frozen cells are linked by a line? or a white nucleus? Maybe a nucleus which grows outwards as the cell ages? Fun!
+*/
 
 var colony; // A colony object
 
@@ -14,12 +17,13 @@ function setup() {
   colorMode(HSB, 360, 255, 255, 255);
   createCanvas(windowWidth, windowHeight);
   //createCanvas(1024, 1024);
+  //frameRate(10);
   ellipseMode(RADIUS);
   p = new Parameters();
   gui = new dat.GUI();
   initGUI();
   background(p.bkgColor);
-  if (p.debug) {frameRate(10);}
+  if (p.debug) {frameRate(15);}
   colony = new Colony(p.colonySize);
 }
 
@@ -52,7 +56,6 @@ function mousePressed() {
   // if (mousePos.x < (width-270)) {colony.spawn(mousePos, vel, dna);}
   if (mousePos.x < (width-270)) {
     p.target = createVector(mouseX, mouseY);
-    colony.foods.push(new Food(p.target, p.targetR)); // Add new Food
   }
 }
 
@@ -145,7 +148,6 @@ var initGUI = function () {
     f7.add(p, 'nucleus').name('Nucleus [N]').listen();
     f7.add(p, 'stepSizeN', 0, 100).name('Step (nucleus)').listen();
 
-  gui.add(p, 'moveTarget').name('Follow #0');
   var controller = gui.add(p, 'maxspeed', 1, 10).step(1).name('Max. Speed').listen();
     controller.onChange(function(value) {populateColony(); });
   var controller = gui.add(p, 'maxforce', 0.1, 1.0).name('Max. Force').listen();
@@ -159,7 +161,11 @@ var initGUI = function () {
     controller.onChange(function(value) {populateColony(); });
   var controller = gui.add(p, 'sepII', 0, 500).name('<--> White-White').listen();
     controller.onChange(function(value) {populateColony(); });
-  var controller = gui.add(p, 'sepFood', 0, 500).name('<--> Cell-Food').listen();
+  var controller = gui.add(p, 'sepMoving', 0, 500).name('<--> Moving').listen();
+    controller.onChange(function(value) {populateColony(); });
+  var controller = gui.add(p, 'targetR', 1, 100).name('Target Size').listen();
+    controller.onChange(function(value) {populateColony(); });
+  var controller = gui.add(p, 'lifespan', 100, 2000).name('Lifespan').listen();
     controller.onChange(function(value) {populateColony(); });
 
   gui.add(p, 'trailMode', { None: 1, Blend: 2, Continuous: 3} ).name('Trail Mode [1-2-3]');
@@ -172,31 +178,31 @@ var initGUI = function () {
 
 var Parameters = function () { //These are the initial values, not the randomised ones
   this.colonySize = int(random (20,80)); // Max number of cells in the colony
-  this.strainSize = int(random(25,50)); // Number of cells in a strain
-  this.numStrains = int(random(1,10)); // Number of strains (a group of cells sharing the same DNA)
+  this.strainSize = int(random(10,50)); // Number of cells in a strain
+  this.numStrains = int(random(2,4)); // Number of strains (a group of cells sharing the same DNA)
 
   this.centerSpawn = false; // true=initial spawn is width/2, height/2 false=random
   this.autoRestart = false; // If true, will not wait for keypress before starting anew
 
-  this.bkgColHSV = { h: random(360), s: random(255), v: random(255) };
+  this.bkgColHSV = { h: random(360), s: random(0), v: random(255,255) }; // debug
   this.bkgColor = color(this.bkgColHSV.h, this.bkgColHSV.s*255, this.bkgColHSV.v*255); // Background colour
 
   this.fill_HTwist = 0;
   this.fill_STwist = 0;
-  this.fill_BTwist = 128;
+  this.fill_BTwist = 0;
   this.fill_ATwist = 0;
   this.stroke_HTwist = 0;
-  this.stroke_STwist = 255;
-  this.stroke_BTwist = 128;
-  this.stroke_ATwist = 255;
+  this.stroke_STwist = 0;
+  this.stroke_BTwist = 0;
+  this.stroke_ATwist = 0;
 
   this.fillDisable = false;
   this.strokeDisable = true;
 
-  this.nucleus = true;
+  this.nucleus = false;
 
   this.stepSize = 0;
-  this.stepSizeN = 00;
+  this.stepSizeN = 0;
   this.stepped = false;
 
   this.wraparound = true;
@@ -206,17 +212,18 @@ var Parameters = function () { //These are the initial values, not the randomise
   this.randomRestart = function () {randomizer(); colony.cells = []; populateColony();};
   this.debug = false;
 
-  this.moveTarget = true; // Toggle between 'center' and cell[0].position
-  this.target = createVector(random(width-270), random(height)); // Initial target has random position
-  this.targetR = random(10, 30);
-  this.maxspeed = 3.0;
+  // this.target = createVector(random(width-270), random(height)); // Initial target has random position
+  this.target = createVector(width/2, height/2); // Initial target is centered
+  this.targetR = random(10, 25);
+  this.maxspeed = 1.0;
   this.maxforce = 0.3;
   this.seekWeight = 0.5; // Multiplier for 'seek target' behaviour
   this.separateWeight = 2; // Multiplier for 'separate' behaviour
-  this.sepFF = 0; // Separation for Fertile && Fertile
-  this.sepFI = 100; // Separation for Fertile && Infertile
-  this.sepII = 200; // Separation for Infertile && Infertile
-  this.sepFood = 300; // Separation for Cells and Food
+  this.sepFF = 0; // Separation for Fertile && Fertile (moving cells & target)
+  this.sepFI = 100; // Separation for Fertile && Infertile (moving cells & frozen cells)
+  this.sepII = 50; // Separation for Infertile && Infertile (no longer applicable as frozen cells do not have behaviour)
+  this.sepMoving = 100; // Separation for moving cells
+  this.lifespan = 300;
 
 }
 
