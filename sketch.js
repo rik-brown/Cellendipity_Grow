@@ -8,8 +8,7 @@
 * Could it be an idea to use splice() to (re)organize the array to work more efficiently? Or perhaps even use two arrays for moving & stationary cells?
 * https://p5js.org/reference/#p5/splice
 *
-* Running OK but self-organizing clusters tend to 'close' quite early.
-* Could stationary cells die off after one lifecycle?
+* Could perhaps use something more on the visual side - frozen cells are linked by a line? or a white nucleus? Maybe a nucleus which grows outwards as the cell ages? Fun!
 */
 
 var colony; // A colony object
@@ -166,6 +165,8 @@ var initGUI = function () {
     controller.onChange(function(value) {populateColony(); });
   var controller = gui.add(p, 'targetR', 1, 100).name('Target Size').listen();
     controller.onChange(function(value) {populateColony(); });
+  var controller = gui.add(p, 'lifespan', 100, 2000).name('Lifespan').listen();
+    controller.onChange(function(value) {populateColony(); });
 
   gui.add(p, 'trailMode', { None: 1, Blend: 2, Continuous: 3} ).name('Trail Mode [1-2-3]');
   gui.add(p, 'restart').name('Respawn [space]');
@@ -188,7 +189,7 @@ var Parameters = function () { //These are the initial values, not the randomise
 
   this.fill_HTwist = 0;
   this.fill_STwist = 0;
-  this.fill_BTwist = 255;
+  this.fill_BTwist = 0;
   this.fill_ATwist = 0;
   this.stroke_HTwist = 0;
   this.stroke_STwist = 0;
@@ -214,14 +215,15 @@ var Parameters = function () { //These are the initial values, not the randomise
   // this.target = createVector(random(width-270), random(height)); // Initial target has random position
   this.target = createVector(width/2, height/2); // Initial target is centered
   this.targetR = random(10, 25);
-  this.maxspeed = 2.0;
+  this.maxspeed = 1.0;
   this.maxforce = 0.3;
   this.seekWeight = 0.5; // Multiplier for 'seek target' behaviour
   this.separateWeight = 2; // Multiplier for 'separate' behaviour
-  this.sepFF = 0; // Separation for Fertile && Fertile
-  this.sepFI = 100; // Separation for Fertile && Infertile
-  this.sepII = 50; // Separation for Infertile && Infertile
-  this.sepMoving = 100; // Separation for Cells and Food
+  this.sepFF = 0; // Separation for Fertile && Fertile (moving cells & target)
+  this.sepFI = 100; // Separation for Fertile && Infertile (moving cells & frozen cells)
+  this.sepII = 50; // Separation for Infertile && Infertile (no longer applicable as frozen cells do not have behaviour)
+  this.sepMoving = 100; // Separation for moving cells
+  this.lifespan = 300;
 
 }
 

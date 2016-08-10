@@ -31,7 +31,9 @@ function Cell(pos, vel, dna) {
 
   // GROWTH & REPRODUCTION
   this.age = 0; // Age is 'number of frames since birth'. A new cell always starts with age = 0. From age comes maturity
-  this.lifespan = map(this.dna.genes[10], 0, 1, 1000, 2000); // Lifespan can be lowered by DNA but not increased
+  this.stillness = 0; // stillness = number of frames a cell has been stationary (excluding the target-cell)
+  // this.lifespan = map(this.dna.genes[10], 0, 1, 500, 500); // Lifespan can be lowered by DNA but not increased
+  this.lifespan = p.lifespan;
   this.fertility = map(this.dna.genes[8], 1, 0, 0.75, 0.9); // How soon will the cell become fertile?
   this.spawnCount = int(map(this.dna.genes[10], 1, 0, 1, 25)); // Max. number of spawns
 
@@ -85,10 +87,10 @@ function Cell(pos, vel, dna) {
     if (this.moving) {
       this.updatePositionB();
       this.updateSize();
-      // this.updateFertility();
-      this.updateColor();
     }
+    if (!this.fertile) {this.stillness ++;}
     if (p.wraparound) {this.checkBoundaryWraparound();}
+    this.updateColor();
     this.display();
     if (p.debug) {this.cellDebugger(i); }
   }
@@ -100,7 +102,7 @@ function Cell(pos, vel, dna) {
   this.live = function() {
     this.age += 1;
     if (this.age > this.lifespan && this.fertile) {this.age = 0;} //infertile cells eventually die off
-    this.maturity = map(this.age, 0, this.lifespan, 1, 0);
+    if (this.fertile) {this.maturity = map(this.age, 0, this.lifespan, 1, 0);} else {this.maturity = map(this.stillness, 0, this.lifespan, 1, 0);}
     this.drawStep--;
     this.drawStepStart = map(p.stepSize, 0, 100, 0 , (this.r *2 + this.growth));
     if (this.drawStep < 0) {this.drawStep = this.drawStepStart;}
@@ -142,15 +144,16 @@ function Cell(pos, vel, dna) {
   }
 
   this.updateColor = function() {
-    if (p.fill_STwist > 0) {this.fill_S = map(this.maturity, 1, 0, (255-p.fill_STwist), 255); this.fillColor = color(this.fill_H, this.fill_S, this.fill_B);} // Modulate fill saturation by radius
+    if (p.fill_STwist > 0) {this.fill_S = map(this.maturity, 0, 1, (255-p.fill_STwist), 255); this.fillColor = color(this.fill_H, this.fill_S, this.fill_B);} // Modulate fill saturation by radius
     if (p.fill_BTwist > 0) {this.fill_B = map(this.maturity, 0, 1, (255-p.fill_BTwist), 255); this.fillColor = color(this.fill_H, this.fill_S, this.fill_B);} // Modulate fill brightness by radius
-    if (p.fill_ATwist > 0) {this.fillAlpha = map(this.maturity, 0, 1, (255-p.fill_ATwist), 255);} // Modulate fill Alpha by radius
+    // if (p.fill_ATwist > 0) {this.fillAlpha = map(this.maturity, 0, 1, (255-p.fill_ATwist), 255);} // Modulate fill Alpha by radius
+    if (p.fill_ATwist > 0) {this.fillAlpha = map(this.maturity, 0, 1, 0, (255-p.fill_ATwist));} // Modulate fill Alpha by radius
     if (p.fill_HTwist > 0) { // Modulate fill hue by radius. Does not change original hue value but replaces it with a 'twisted' version
       this.fill_Htwisted = map(this.maturity, 1, 0, this.fill_H, this.fill_H+p.fill_HTwist);
       if (this.fill_Htwisted > 360) {this.fill_Htwisted -= 360;}
       this.fillColor = color(this.fill_Htwisted, this.fill_S, this.fill_B); //fill colour is updated with new hue value
     }
-    if (p.stroke_STwist > 0) {this.stroke_S = map(this.maturity, 1, 0, (255-p.stroke_STwist), 255); this.strokeColor = color(this.stroke_H, this.stroke_S, this.stroke_B);} // Modulate stroke saturation by radius
+    if (p.stroke_STwist > 0) {this.stroke_S = map(this.maturity, 0, 1, (255-p.stroke_STwist), 255); this.strokeColor = color(this.stroke_H, this.stroke_S, this.stroke_B);} // Modulate stroke saturation by radius
     if (p.stroke_BTwist > 0) {this.stroke_B = map(this.maturity, 0, 1, (255-p.stroke_BTwist), 255); this.strokeColor = color(this.stroke_H, this.stroke_S, this.stroke_B);} // Modulate stroke brightness by radius
     // if (p.stroke_ATwist > 0) {this.strokeAlpha = map(this.maturity, 0, 1, (255-p.stroke_ATwist), 255);} // Modulate stroke Alpha by radius
     if (p.stroke_ATwist > 0) {this.strokeAlpha = map(this.maturity, 0, 1, 0, (255-p.stroke_ATwist));} // Modulate stroke Alpha by radius
@@ -237,8 +240,9 @@ function Cell(pos, vel, dna) {
 
   // Death
   this.dead = function() {
+    if (this.stillness >= this.lifespan) {return true;}
     //if (this.cellEndSize < this.cellStartSize && this.r <= this.cellEndSize) {return true;} // Death by size (only when cell is shrinking)
-    if (this.age >= this.lifespan) {return true;} // Death by old age (regardless of size, which may remain constant)
+    // if (this.age >= this.lifespan) {return true;} // Death by old age (regardless of size, which may remain constant)
     if (this.position.x > width + this.r*this.flatness || this.position.x < -this.r*this.flatness || this.position.y > height + this.r*this.flatness || this.position.y < -this.r*this.flatness) {return true;} // Death if move beyond canvas boundary
     else {return false; }
   };
@@ -361,7 +365,7 @@ function Cell(pos, vel, dna) {
       // other.fertile = false;
     }
 
-    // else {this.position = createVector(random(width), random(height))}  // If cell collides with an infertile cell, simply randomise the cell's position
+    // else {this.position = createVector(random(width), random(height))}  // If cell collides with an infertile cell, simply randomise the cell's position WARNING! There is something buggy in this line!!!)
     else {this.velocity.mult(-1);}  // If cell collides with an infertile cell, simply reverse the cell's velocity
 
   }
@@ -372,7 +376,7 @@ function Cell(pos, vel, dna) {
     fill(0);
     textSize(rowHeight);
 
-    text(i, this.position.x, this.position.y + rowHeight*0);
+    // text(i, this.position.x, this.position.y + rowHeight*0);
 
     // RADIUS
     // text("r:" + this.r, this.position.x, this.position.y + rowHeight*1);
@@ -392,9 +396,10 @@ function Cell(pos, vel, dna) {
 
     // GROWTH
     //text("growth:" + this.growth, this.position.x, this.position.y + rowHeight*5);
-    text("maturity:" + this.maturity, this.position.x, this.position.y + rowHeight*1);
+    // text("maturity:" + this.maturity, this.position.x, this.position.y + rowHeight*1);
     // text("lifespan:" + this.lifespan, this.position.x, this.position.y + rowHeight*3);
-    //text("age:" + this.age, this.position.x, this.position.y + rowHeight*3);
+    text("age:" + this.age, this.position.x, this.position.y + rowHeight*1);
+    text("still:" + this.stillness, this.position.x, this.position.y + rowHeight*0);
     // text("fertility:" + this.fertility, this.position.x, this.position.y + rowHeight*4);
     // text("f:" + this.fertile, this.position.x, this.position.y + rowHeight*2);
     // text("m:" + this.moving, this.position.x, this.position.y + rowHeight*3);
