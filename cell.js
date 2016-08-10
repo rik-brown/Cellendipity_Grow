@@ -21,14 +21,13 @@ function Cell(pos, vel, dna) {
 
   // BOOLEAN
   this.fertile = true; // A new cell always starts of infertile
-  this.moving = true;
+  this.moving = true; // A new cell always starts of moving
 
   // LIFECYCLE
   // Stage 0 = Moving and fertile
   // Stage 1 = Stationary and fertile (attractive)
   // Stage 2 = Stationary and infertile (repellent)
 
-  this.stage = 0; // A new cell always starts of in stage 0
 
   // GROWTH & REPRODUCTION
   this.age = 0; // Age is 'number of frames since birth'. A new cell always starts with age = 0. From age comes maturity
@@ -38,8 +37,8 @@ function Cell(pos, vel, dna) {
 
   // SIZE AND SHAPE
   // this.cellStartSize = map(this.dna.genes[8], 0, 1, 20, 50);
-  this.cellStartSize = 10; // debug
-  this.cellStartSize = map(this.dna.genes[8], 0, 1, p.targetR, p.targetR); // cellStartSize does not vary by DNA
+  // this.cellStartSize = 10; // debug
+  this.cellStartSize = map(this.dna.genes[8], 0, 1, 1, p.targetR);
   this.cellEndSize = this.cellStartSize * map(this.dna.genes[9], 0, 1, 0.05, 0.1);
   this.r = this.cellStartSize; // Initial value for radius
   // this.flatness = map(this.dna.genes[11], 0, 1, 0.5, 2); // To make circles into ellipses. range 0.5 - 1.5
@@ -80,8 +79,8 @@ function Cell(pos, vel, dna) {
   this.strokeAlpha = map(this.dna.genes[7], 0, 1, 0, 64);
 
   this.run = function(i) {
-    if (p.moveTarget) {this.updateMovingTarget();}
-    this.live();
+    this.updateMovingTarget();
+    this.live(); // all cells live, even stationary ones
     // this.updatePosition();
     if (this.moving) {
       this.updatePositionB();
@@ -95,14 +94,12 @@ function Cell(pos, vel, dna) {
   }
 
   this.updateMovingTarget = function() {
-    // this.movingTargetX = colony.foods[0].position.x;
-    // this.movingTargetY = colony.foods[0].position.y;
-    //this.movingTarget = createVector(this.movingTargetX, this.movingTargetY); // The target is always 'cell[0]'
       this.movingTarget = p.target; // The target is always the current 'p.target'
   }
 
   this.live = function() {
     this.age += 1;
+    if (this.age > this.lifespan && this.fertile) {this.age = 0;} //infertile cells eventually die off
     this.maturity = map(this.age, 0, this.lifespan, 1, 0);
     this.drawStep--;
     this.drawStepStart = map(p.stepSize, 0, 100, 0 , (this.r *2 + this.growth));
@@ -133,10 +130,10 @@ function Cell(pos, vel, dna) {
   }
 
   this.updateSize = function() {
-    // this.r = (((sin(map(this.maturity, 1, 0, 0, PI))))*this.cellStartSize)+2;
+    this.r = (((sin(map(this.maturity, 1, 0, 0, PI))))*this.cellStartSize)+2;
     // this.r = ((cos(map(this.maturity, 1, 0, PI, PI*3)))+1)*this.cellStartSize
     //this.r -= this.growth;
-    this.r = this.cellStartSize;
+    // this.r = this.cellStartSize;
   }
 
   this.updateFertility = function() {
@@ -155,7 +152,8 @@ function Cell(pos, vel, dna) {
     }
     if (p.stroke_STwist > 0) {this.stroke_S = map(this.maturity, 1, 0, (255-p.stroke_STwist), 255); this.strokeColor = color(this.stroke_H, this.stroke_S, this.stroke_B);} // Modulate stroke saturation by radius
     if (p.stroke_BTwist > 0) {this.stroke_B = map(this.maturity, 0, 1, (255-p.stroke_BTwist), 255); this.strokeColor = color(this.stroke_H, this.stroke_S, this.stroke_B);} // Modulate stroke brightness by radius
-    if (p.stroke_ATwist > 0) {this.strokeAlpha = map(this.maturity, 0, 1, (255-p.stroke_ATwist), 255);} // Modulate stroke Alpha by radius
+    // if (p.stroke_ATwist > 0) {this.strokeAlpha = map(this.maturity, 0, 1, (255-p.stroke_ATwist), 255);} // Modulate stroke Alpha by radius
+    if (p.stroke_ATwist > 0) {this.strokeAlpha = map(this.maturity, 0, 1, 0, (255-p.stroke_ATwist));} // Modulate stroke Alpha by radius
     if (p.stroke_HTwist > 0) { // Modulate stroke hue by radius
       this.stroke_Htwisted = map(this.maturity, 1, 0, this.stroke_H, this.stroke_H+p.stroke_HTwist);
       if (this.stroke_Htwisted > 360) {this.stroke_Htwisted -= 360;}
@@ -194,15 +192,12 @@ function Cell(pos, vel, dna) {
 
   this.applyBehaviors = function(cells, foods) {
     var separateForce = this.separate(cells);
-    // var separateForceFoods = this.separateFoods(foods);
-    if (!p.moveTarget) {var seekForce = this.seek(this.target);}  else {var seekForce = this.seek(this.movingTarget);}
+    var seekForce = this.seek(this.movingTarget);
 
     separateForce.mult(p.separateWeight);
-    // separateForceFoods.mult(p.separateWeight);
     seekForce.mult(p.seekWeight);
 
     this.applyForce(separateForce);
-    // this.applyForce(separateForceFoods);
     this.applyForce(seekForce);
   }
 
@@ -214,9 +209,6 @@ function Cell(pos, vel, dna) {
     // For every cell in the system, check if it's too close
     for (var i = 0; i < cells.length; i++) {
       var d = p5.Vector.dist(this.position, cells[i].position);
-      // if (this.fertile && cells[i].fertile) {desiredseparation = 0;}
-      // if (!this.fertile && cells[i].fertile || this.fertile && !cells[i].fertile) {desiredseparation = this.r + cells[i].r;}
-      // if (!this.fertile && !cells[i].fertile) {desiredseparation = (this.r + cells[i].r)*1.6;}
       if (this.fertile && cells[i].fertile) {desiredseparation = p.sepFF * 0.01 * (this.r + cells[i].r);}
       if (this.fertile && !cells[i].fertile || this.fertile && !cells[i].fertile) {desiredseparation = p.sepFI * 0.01 * (this.r + cells[i].r);}
       if (this.moving && cells[i].moving) {desiredseparation = p.sepMoving * 0.01 * (this.r + cells[i].r);}
@@ -243,39 +235,6 @@ function Cell(pos, vel, dna) {
     return sum;
   }
 
-  // Separation of Cells and Foods
-  // Method checks for nearby vehicles and steers away
-  // this.separateFoods = function(foods) {
-  //   var sum = createVector();
-  //   var count = 0;
-  //   // For every food in the system apart from the last one to be added, check if it's too close
-  //   for (var i = 0; i < foods.length-1; i++) {
-  //     var d = p5.Vector.dist(this.position, foods[i].position);
-  //     desiredseparation = p.sepMoving * 0.01 * p.targetR;
-  //     // If the distance is greater than 0 and less than an arbitrary amount (0 when you are yourself)
-  //     if ((d > 0) && (d < desiredseparation)) {
-  //       // Calculate vector pointing away from neighbor
-  //       var diff = p5.Vector.sub(this.position, foods[i].position);
-  //       diff.normalize();
-  //       diff.div(d);        // Weight by distance
-  //       sum.add(diff);
-  //       count++;            // Keep track of how many
-  //     }
-  //   }
-  //   // Average -- divide by how many
-  //   if (count > 0) {
-  //     sum.div(count);
-  //     // Our desired vector is the average scaled to maximum speed
-  //     sum.normalize();
-  //     sum.mult(p.maxspeed);
-  //     // Implement Reynolds: Steering = Desired - Velocity
-  //     sum.sub(this.velocity);
-  //     sum.limit(p.maxforce);
-  //   }
-  //   return sum;
-  // }
-
-
   // Death
   this.dead = function() {
     //if (this.cellEndSize < this.cellStartSize && this.r <= this.cellEndSize) {return true;} // Death by size (only when cell is shrinking)
@@ -286,16 +245,16 @@ function Cell(pos, vel, dna) {
 
   this.display = function() {
     strokeWeight(1);
-    // if (p.strokeDisable) {noStroke();} else {stroke(hue(this.strokeColor), saturation(this.strokeColor), brightness(this.strokeColor), this.strokeAlpha);}
-    if (p.strokeDisable) {noStroke();} else {stroke(100);}
+    if (p.strokeDisable) {noStroke();} else {stroke(hue(this.strokeColor), saturation(this.strokeColor), brightness(this.strokeColor), this.strokeAlpha);}
+    // if (p.strokeDisable) {noStroke();} else {stroke(100);} //debug
     if (p.fillDisable) {noFill();} else {fill(hue(this.fillColor), saturation(this.fillColor), brightness(this.fillColor), this.fillAlpha);}
-    //if (!this.moving) {fill(128);}
+    //if (!this.moving) {fill(128);} //debug
     var angle = this.velocity.heading();
     push();
     translate(this.position.x, this.position.y);
     rotate(angle);
     if (!p.stepped) { // No step-counter for Cell
-      //line(-this.r,0,-this.r*2,0);
+      //line(-this.r,0,-this.r*2,0); //debug
       ellipse(0, 0, this.r, this.r * this.flatness);
 
       if (p.nucleus && this.drawStepN < 1) {
@@ -341,11 +300,11 @@ function Cell(pos, vel, dna) {
     // strokeWeight(1);
     // stroke(128, 128);
     // line(this.position.x, this.position.y, other.position.x, other.position.y);
-    strokeWeight(1); // debug
-    line(this.position.x, this.position.y, p.target.x, p.target.y); // debug
-    noFill(); // debug
-    ellipse(this.position.x, this.position.y, distMag, distMag); // debug
-    strokeWeight(1); // debug
+    // strokeWeight(1); // debug
+    // line(this.position.x, this.position.y, p.target.x, p.target.y); // debug
+    // noFill(); // debug
+    // ellipse(this.position.x, this.position.y, distMag, distMag); // debug
+    // strokeWeight(1); // debug
     // text(int(distMag) + "   " + int(this.r) + "   " + int(other.r) + "   " + int(this.r+other.r), this.position.x, this.position.y+10); // debug
     if (distMag < (this.r + other.r)) {this.conception(other);} // Spawn a new cell
   }
@@ -360,11 +319,11 @@ function Cell(pos, vel, dna) {
 
     if (other.fertile) {
       this.moving = false; // Current cell should stop moving
+      p.target = createVector(this.position.x, this.position.y); // Target is moved to current cell position at moment of collision
       other.fertile = false // Target cell turned into an infertile piece of the coral
 
-      //Calculate position for spawn based on PVector between cell & other (leaving 'distVect' unchanged, as it is needed later)
-      var spawnPos = createVector(random(-500,500), random(-500,500));
-      spawnPos.add(p.target);
+      //Calculate position for spawn
+      var spawnPos = createVector(random(width), random(height));
 
       // Calculate velocity vector for spawn as being roughly centered between parent cell & other
       // var spawnVel = this.velocity.copy(); // Create spawnVel as a copy of parent cell's velocity vector
@@ -392,11 +351,8 @@ function Cell(pos, vel, dna) {
 
       //childDNA.mutate(0.01); // Child DNA can mutate. HACKED! Mutation is temporarily disabled!
 
-      // Call spawn method (in Colony) with the new parameters for position, velocity, colour & starting radius)
-      // Note: Currently no combining of parent DNA
+      // Call spawn method (in Colony) with the new parameters for position, velocity & combined DNA
       colony.spawn(spawnPos, spawnVel, childDNA);
-
-      p.target = createVector(this.position.x, this.position.y); // Target is moved to current cell position at moment of collision
 
       //Reduce fertility for parent cells by squaring them
       // this.fertility *= this.fertility;
@@ -405,7 +361,8 @@ function Cell(pos, vel, dna) {
       // other.fertile = false;
     }
 
-    else {this.position = createVector(random(width), random(height))}  // If cell collides with an infertile cell, simply randomise the cell's position
+    // else {this.position = createVector(random(width), random(height))}  // If cell collides with an infertile cell, simply randomise the cell's position
+    else {this.velocity.mult(-1);}  // If cell collides with an infertile cell, simply reverse the cell's velocity
 
   }
 
@@ -435,7 +392,7 @@ function Cell(pos, vel, dna) {
 
     // GROWTH
     //text("growth:" + this.growth, this.position.x, this.position.y + rowHeight*5);
-    //text("maturity:" + this.maturity, this.position.x, this.position.y + rowHeight*1);
+    text("maturity:" + this.maturity, this.position.x, this.position.y + rowHeight*1);
     // text("lifespan:" + this.lifespan, this.position.x, this.position.y + rowHeight*3);
     //text("age:" + this.age, this.position.x, this.position.y + rowHeight*3);
     // text("fertility:" + this.fertility, this.position.x, this.position.y + rowHeight*4);
