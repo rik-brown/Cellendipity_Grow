@@ -41,8 +41,9 @@ function Cell(pos, vel, dna) {
   // this.cellStartSize = map(this.dna.genes[8], 0, 1, 20, 50);
   // this.cellStartSize = 10; // debug
   this.cellStartSize = map(this.dna.genes[8], 0, 1, 1, p.targetR);
-  this.cellEndSize = this.cellStartSize * map(this.dna.genes[9], 0, 1, 0.05, 0.1);
+  this.cellEndSize = this.cellStartSize * map(this.dna.genes[9], 0, 1, 0.1, 0.5);
   this.r = this.cellStartSize; // Initial value for radius
+  this.cellEndSize = this.r * 0.3;
   // this.flatness = map(this.dna.genes[11], 0, 1, 0.5, 2); // To make circles into ellipses. range 0.5 - 1.5
   this.flatness = 1;
   this.growth = (this.cellStartSize-this.cellEndSize)/this.lifespan; // Should work for both large>small and small>large
@@ -133,6 +134,7 @@ function Cell(pos, vel, dna) {
 
   this.updateSize = function() {
     this.r = (((sin(map(this.maturity, 1, 0, 0, PI))))*this.cellStartSize)+2;
+    this.cellEndSize = this.r * 0.3;
     // this.r = ((cos(map(this.maturity, 1, 0, PI, PI*3)))+1)*this.cellStartSize
     //this.r -= this.growth;
     // this.r = this.cellStartSize;
@@ -261,7 +263,7 @@ function Cell(pos, vel, dna) {
       //line(-this.r,0,-this.r*2,0); //debug
       ellipse(0, 0, this.r, this.r * this.flatness);
 
-      if (p.nucleus && this.drawStepN < 1) {
+      if (!this.moving && this.drawStepN < 1) {
         if (this.fertile) {
           fill(0); ellipse(0, 0, this.cellEndSize, this.cellEndSize * this.flatness);
         }
