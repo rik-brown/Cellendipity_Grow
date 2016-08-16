@@ -103,7 +103,7 @@ function Cell(pos, vel, dna) {
   this.live = function() {
     this.age += 1;
     if (this.age > this.lifespan && this.fertile) {this.age = 0;} //infertile cells eventually die off
-    if (this.fertile) {this.maturity = map(this.age, 0, this.lifespan, 1, 0);} else {this.maturity = map(this.stillness, 0, this.lifespan, 1, 0);}
+    if (this.fertile) {this.maturity = map(this.age, 0, this.lifespan, 1, 0);} else {this.maturity = map(this.stillness, 0, this.lifespan, 0, 1);}
     this.drawStep--;
     this.drawStepStart = map(p.stepSize, 0, 100, 0 , (this.r *2 + this.growth));
     if (this.drawStep < 0) {this.drawStep = this.drawStepStart;}
@@ -253,7 +253,7 @@ function Cell(pos, vel, dna) {
     strokeWeight(1);
     if (p.strokeDisable) {noStroke();} else {stroke(hue(this.strokeColor), saturation(this.strokeColor), brightness(this.strokeColor), this.strokeAlpha);}
     // if (p.strokeDisable) {noStroke();} else {stroke(100);} //debug
-    if (p.fillDisable) {noFill();} else {fill(hue(this.fillColor), saturation(this.fillColor), brightness(this.fillColor), this.fillAlpha);}
+    if (p.fillDisable) {fill(255);} else {fill(hue(this.fillColor), saturation(this.fillColor), brightness(this.fillColor), this.fillAlpha);}
     //if (!this.moving) {fill(128);} //debug
     var angle = this.velocity.heading();
     push();
@@ -265,10 +265,10 @@ function Cell(pos, vel, dna) {
 
       if (!this.moving && this.drawStepN < 1) {
         if (this.fertile) {
-          fill(0); ellipse(0, 0, this.cellEndSize, this.cellEndSize * this.flatness);
+          fill(0); ellipse(0, 0, this.r * this.maturity, this.r * this.maturity* this.flatness);
         }
         else {
-          fill(255); ellipse(0, 0, this.cellEndSize, this.cellEndSize * this.flatness);
+          fill(255); ellipse(0, 0, this.r * this.maturity, this.r * this.maturity * this.flatness);
         }
       }
     }
