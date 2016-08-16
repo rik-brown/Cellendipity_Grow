@@ -41,8 +41,9 @@ function Cell(pos, vel, dna) {
   // this.cellStartSize = map(this.dna.genes[8], 0, 1, 20, 50);
   // this.cellStartSize = 10; // debug
   this.cellStartSize = map(this.dna.genes[8], 0, 1, 1, p.targetR);
-  this.cellEndSize = this.cellStartSize * map(this.dna.genes[9], 0, 1, 0.05, 0.1);
+  this.cellEndSize = this.cellStartSize * map(this.dna.genes[9], 0, 1, 0.1, 0.5);
   this.r = this.cellStartSize; // Initial value for radius
+  this.cellEndSize = this.r * 0.3;
   // this.flatness = map(this.dna.genes[11], 0, 1, 0.5, 2); // To make circles into ellipses. range 0.5 - 1.5
   this.flatness = 1;
   this.growth = (this.cellStartSize-this.cellEndSize)/this.lifespan; // Should work for both large>small and small>large
@@ -102,7 +103,7 @@ function Cell(pos, vel, dna) {
   this.live = function() {
     this.age += 1;
     if (this.age > this.lifespan && this.fertile) {this.age = 0;} //infertile cells eventually die off
-    if (this.fertile) {this.maturity = map(this.age, 0, this.lifespan, 1, 0);} else {this.maturity = map(this.stillness, 0, this.lifespan, 1, 0);}
+    if (this.fertile) {this.maturity = map(this.age, 0, this.lifespan, 1, 0);} else {this.maturity = map(this.stillness, 0, this.lifespan, 0, 1);}
     this.drawStep--;
     this.drawStepStart = map(p.stepSize, 0, 100, 0 , (this.r *2 + this.growth));
     if (this.drawStep < 0) {this.drawStep = this.drawStepStart;}
@@ -133,6 +134,7 @@ function Cell(pos, vel, dna) {
 
   this.updateSize = function() {
     this.r = (((sin(map(this.maturity, 1, 0, 0, PI))))*this.cellStartSize)+2;
+    this.cellEndSize = this.r * 0.3;
     // this.r = ((cos(map(this.maturity, 1, 0, PI, PI*3)))+1)*this.cellStartSize
     //this.r -= this.growth;
     // this.r = this.cellStartSize;
@@ -251,7 +253,7 @@ function Cell(pos, vel, dna) {
     strokeWeight(1);
     if (p.strokeDisable) {noStroke();} else {stroke(hue(this.strokeColor), saturation(this.strokeColor), brightness(this.strokeColor), this.strokeAlpha);}
     // if (p.strokeDisable) {noStroke();} else {stroke(100);} //debug
-    if (p.fillDisable) {noFill();} else {fill(hue(this.fillColor), saturation(this.fillColor), brightness(this.fillColor), this.fillAlpha);}
+    if (p.fillDisable) {fill(255);} else {fill(hue(this.fillColor), saturation(this.fillColor), brightness(this.fillColor), this.fillAlpha);}
     //if (!this.moving) {fill(128);} //debug
     var angle = this.velocity.heading();
     push();
@@ -261,12 +263,12 @@ function Cell(pos, vel, dna) {
       //line(-this.r,0,-this.r*2,0); //debug
       ellipse(0, 0, this.r, this.r * this.flatness);
 
-      if (p.nucleus && this.drawStepN < 1) {
+      if (!this.moving && this.drawStepN < 1) {
         if (this.fertile) {
-          fill(0); ellipse(0, 0, this.cellEndSize, this.cellEndSize * this.flatness);
+          fill(0); ellipse(0, 0, this.r * this.maturity, this.r * this.maturity* this.flatness);
         }
         else {
-          fill(255); ellipse(0, 0, this.cellEndSize, this.cellEndSize * this.flatness);
+          fill(255); ellipse(0, 0, this.r * this.maturity, this.r * this.maturity * this.flatness);
         }
       }
     }

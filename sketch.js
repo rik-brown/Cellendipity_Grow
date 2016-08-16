@@ -189,7 +189,7 @@ var Parameters = function () { //These are the initial values, not the randomise
 
   this.fill_HTwist = 0;
   this.fill_STwist = 0;
-  this.fill_BTwist = 0;
+  this.fill_BTwist = 200;
   this.fill_ATwist = 0;
   this.stroke_HTwist = 0;
   this.stroke_STwist = 0;
@@ -206,15 +206,15 @@ var Parameters = function () { //These are the initial values, not the randomise
   this.stepped = false;
 
   this.wraparound = true;
-  this.trailMode = 1; // 1=none, 2 = blend, 3 = continuous
+  this.trailMode = 3; // 1=none, 2 = blend, 3 = continuous
 
   this.restart = function () {colony.cells = []; populateColony();};
   this.randomRestart = function () {randomizer(); colony.cells = []; populateColony();};
   this.debug = false;
 
-  // this.target = createVector(random(width-270), random(height)); // Initial target has random position
-  this.target = createVector(width/2, height/2); // Initial target is centered
-  this.targetR = random(10, 25);
+  this.target = createVector(random(width-270), random(height)); // Initial target has random position
+  // this.target = createVector(width/2, height/2); // Initial target is centered
+  this.targetR = random(20, 70);
   this.maxspeed = 1.0;
   this.maxforce = 0.3;
   this.seekWeight = 0.5; // Multiplier for 'seek target' behaviour
@@ -223,7 +223,7 @@ var Parameters = function () { //These are the initial values, not the randomise
   this.sepFI = 100; // Separation for Fertile && Infertile (moving cells & frozen cells)
   this.sepII = 50; // Separation for Infertile && Infertile (no longer applicable as frozen cells do not have behaviour)
   this.sepMoving = 100; // Separation for moving cells
-  this.lifespan = 300;
+  this.lifespan = 1200;
 
 }
 
